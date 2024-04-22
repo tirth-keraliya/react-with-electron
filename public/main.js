@@ -3,9 +3,10 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const url = require("url");
 
-const createWindow = () => {
+const createWindow = async () => {
+  const { default: isDev } = await import("electron-is-dev");
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -15,20 +16,15 @@ const createWindow = () => {
     },
   });
 
-  // and load the index.html of the app.
-  // Use dynamic import for electron-is-dev
-  const startURL =
-    process.env.NODE_ENV === "development"
+  // Load the appropriate URL based on development or production environment
+  mainWindow.loadURL(
+    isDev
       ? "http://localhost:3000"
-      : url.format({
-          pathname: path.join(__dirname, "../build/index.html"),
-          protocol: "file:",
-          slashes: true,
-        });
+      : `file://${path.join(__dirname, "../build/index.html")}`
+  );
 
-  mainWindow.loadURL(startURL);
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  // Optionally open the DevTools.
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished

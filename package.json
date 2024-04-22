@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
+    "electron-is-dev": "^3.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -28,7 +29,7 @@
       "main": "build/main.js"
     },
     "win": {
-      "icon": "./images/icon.ico" 
+      "icon": "./images/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -47,7 +48,6 @@
     "electron:start": "wait-on tcp:3000 && electron .",
     "dist": "electron-builder"
   },
- 
   "eslintConfig": {
     "extends": [
       "react-app",
