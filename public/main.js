@@ -9,6 +9,8 @@ const createWindow = async () => {
     width: 800,
     height: 600,
     webPreferences: {
+      protocol: "file",
+      slashes: true,
       contextIsolation: true, // This should be true
       nodeIntegration: false, // This should be false
       preload: path.join(__dirname, "preload.js"), // This will be useful for inter-process communication
@@ -26,6 +28,7 @@ const createWindow = async () => {
     shell.openExternal(url);
     return { action: "deny" }; // Prevent the Electron window from opening a new tab
   });
+  //   mainWindow.setMenuBarVisibility(false);
 };
 
 app.whenReady().then(() => {

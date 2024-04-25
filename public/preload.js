@@ -23,12 +23,15 @@ function App() {
         const data = await fetchActiveURL();
         setActiveURLs(data.items);
 
+        const splashImage = data.splashImage;
+        setSplashBackgroundImage(splashImage || "");
+
         const activeURL = data.items.find((item) => item.isActive);
 
-        if (activeURL && !hasRedirected) {
-          // Using Electron API to open the link in the default browser
-          window.electronAPI.openLink(activeURL.url);
-          setHasRedirected(true);
+        // Open only if we haven't redirected yet
+        if (activeURL && !hasRedirected.current) {
+          window.open(activeURL.url, "_blank");
+          hasRedirected.current = true; // Prevent further redirections
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -37,10 +40,9 @@ function App() {
       }
     };
 
-    if (!hasRedirected) {
-      fetchData();
-    }
-  }, [hasRedirected]);
+    // Fetch data only once when component mounts
+    fetchData();
+  }, []); // Only run on component mount
 
   const handleButtonClick = () => {
     const activeURL = activeURLs.find((item) => item.isActive);
@@ -60,7 +62,7 @@ function App() {
         <div
           className="main-wrap"
           style={{
-            backgroundImage: `url(${Background})`,
+            backgroundImage: `url(${splashBackgroundImage || Background})`,
           }}
         >
           <div className="bottom-wrap">

@@ -15,7 +15,7 @@ function App() {
       try {
         const data = await fetchActiveURL();
         setActiveURLs(data.items);
-
+        console.log(data, "dataaaaaaaa");
         const splashImage = data.splashImage;
         setSplashBackgroundImage(splashImage || "");
 

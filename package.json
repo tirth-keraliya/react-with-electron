@@ -22,6 +22,7 @@
     "path-browserify": "^1.0.1"
   },
   "build": {
+    "files": ["build/**/*", "public/**/*"],
     "appId": "com.example.myapp",
     "productName": "TGICasino",
     "directories": {
