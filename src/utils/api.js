@@ -8,6 +8,7 @@ export const fetchActiveURL = async () => {
       `${API_URL}/spaces/${SPACE_ID}/environments/master/entries?content_type=${COLLECTION_NAME}&access_token=${ACCESS_TOKEN}&limit=100`
     );
     const responseData = await response.json();
+    console.log(responseData, "asdas");
     const items = responseData.items.map((item) => item.fields);
     const splashImage = responseData.includes.Asset[0].fields.file.url;
     console.log("Data from API:", responseData.includes.Asset[0].fields);
