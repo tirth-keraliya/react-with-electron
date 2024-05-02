@@ -4,6 +4,7 @@ import { fetchActiveURL } from "./utils/api";
 import Background from "./images/homebg.png";
 import RightArrow from "./images/rightarrow.svg";
 import { ClipLoader } from "react-spinners";
+// const { ipcRenderer } = require("electron");
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,9 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("heyyyyyyy");
         const data = await fetchActiveURL();
+        // ipcRenderer.send("request-fcm-registration");
         setActiveURLs(data.items);
         const splashImage = data.splashImage;
         console.log(splashImage, "splashImageeeee");
@@ -40,6 +43,7 @@ function App() {
     // Fetch data only once when component mounts
     fetchData();
   }, []);
+
   // Only run when hasRedirected changes
   const handleButtonClick = () => {
     const activeURL = activeURLs.find((item) => item.isActive);
