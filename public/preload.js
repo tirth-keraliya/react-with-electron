@@ -1,90 +1,38 @@
 // preload.js
 const { contextBridge, ipcRenderer } = require("electron");
 
+// Expose functions to the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
   openLink: (url) => ipcRenderer.send("open-link", url),
 });
-contextBridge.exposeInMainWorld("electronAPI", {
-  sendNotification: (title, body) => {
-    ipcRenderer.send("trigger-notification", { title, body });
+
+contextBridge.exposeInMainWorld("electron", {
+  isElectron: true,
+  getFCMToken: (channel, func) => {
+    ipcRenderer.once(channel, func);
+    ipcRenderer.send("getFCMToken");
   },
 });
-// App.js (Renderer Process)
-// import { useEffect, useState } from "react";
-// import "./App.css";
-// import { fetchActiveURL } from "./utils/api";
-// import Background from "./images/homebg.png";
-// import RightArrow from "./images/rightarrow.svg";
 
-// function App() {
-//   const [loading, setLoading] = useState(true);
-//   const [activeURLs, setActiveURLs] = useState([]);
-//   const [hasRedirected, setHasRedirected] = useState(false);
-//   const [splashBackgroundImage, setSplashBackgroundImage] =
-//     useState(Background);
+// Start FCM service with your sender ID
+const senderId = "546843854180"; // Replace with your FCM sender ID
+ipcRenderer.send("PUSH_RECEIVER:::START_NOTIFICATION_SERVICE", senderId);
 
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const data = await fetchActiveURL();
-//         setActiveURLs(data.items);
-//         const splashImage = data.splashImage;
+// Handle the start of the notification service
+ipcRenderer.on("PUSH_RECEIVER:::NOTIFICATION_SERVICE_STARTED", (_, token) => {
+  ipcRenderer.send("storeFCMToken", token);
+});
 
-//         if (splashImage) {
-//           setSplashBackgroundImage(splashImage);
-//         }
+// Handle incoming notifications and extract key information
+ipcRenderer.on("PUSH_RECEIVER:::NOTIFICATION_RECEIVED", (_, notification) => {
+  // Log the full notification content for debugging
+  console.log("Full Notification Content:", JSON.stringify(notification));
 
-//         const activeURL = data.items.find((item) => item.isActive);
+  // Send a local notification with extracted information
+  ipcRenderer.send("send-notification", notification);
+});
 
-//         // Open only if we haven't redirected yet
-//         if (activeURL && !hasRedirected.current) {
-//           window.open(activeURL.url, "_blank");
-//           hasRedirected.current = true; // Prevent further redirections
-//         }
-//       } catch (error) {
-//         console.error("Error fetching data:", error);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     // Fetch data only once when component mounts
-//     fetchData();
-//   }, []);
-//   // Only run when hasRedirected changes
-//   const handleButtonClick = () => {
-//     const activeURL = activeURLs.find((item) => item.isActive);
-
-//     if (activeURL && activeURL.url) {
-//       window.open(activeURL.url, "_blank");
-//     }
-//   };
-
-//   return (
-//     <>
-//       {loading ? (
-//         <div className="center-wrap">
-//           <p>Hang tight, we're getting things ready for you.</p>
-//         </div>
-//       ) : (
-//         <div
-//           className="main-wrap"
-//           style={{
-//             backgroundImage: `url(${
-//               splashBackgroundImage ? splashBackgroundImage : Background
-//             })`, // Ternary for conditional fallback
-//           }}
-//         >
-//           <div className="bottom-wrap">
-//             <button className="btn-wrap" onClick={handleButtonClick}>
-//               Click here to visit the casino
-//               <img src={RightArrow} alt="right-arrow" />
-//             </button>
-//           </div>
-//         </div>
-//       )}
-//     </>
-//   );
-// }
-
-// export default App;
+// Handle token updates
+ipcRenderer.on("PUSH_RECEIVER:::TOKEN_UPDATED", (_, token) => {
+  ipcRenderer.send("storeFCMToken", token);
+});

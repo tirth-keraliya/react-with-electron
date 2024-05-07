@@ -1,99 +1,103 @@
-// main.js (Main Process)
 const {
-  ipcMain,
-  Notification,
   app,
   BrowserWindow,
+  ipcMain,
   shell,
+  Notification,
 } = require("electron");
 const path = require("path");
+const { setup: setupPushReceiver } = require("electron-push-receiver");
 const log = require("electron-log");
-const pushReceiver = require("electron-push-receiver");
+let appIcon = path.join(__dirname, "images", "icon.ico");
+// Function to create the Electron window
 
-// Replace with your OneSignal App ID and REST API key
-const oneSignalAppId = "606da364-5f95-426a-a279-27b9c5d7717d";
-const oneSignalRestApiKey = "ZDMwYWQ2NjEtZThjYy00NWY2LWJkZDktMWZhZGUyMmU1ZmRk";
-
+var iconPath = path.join(__dirname, "images", "icon.ico");
+if (process.platform === "darwin") {
+  iconPath = path.join(__dirname, "images", "icon.icns");
+}
 const createWindow = async () => {
-  log.info("App starting...");
-  const { default: isDev } = await import("electron-is-dev");
-
+  const { default: isDev } = await import("electron-is-dev"); // Use dynamic import for ESM compatibility
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    icon: iconPath,
     webPreferences: {
-      protocol: "file",
-      slashes: true,
-      contextIsolation: true, // This should be true
-      nodeIntegration: false, // This should be false
-      // preload: path.join(__dirname, "preload.js"), // This will be useful for inter-process communication
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, "./preload.js"),
     },
   });
+  const appUrl = isDev
+    ? "http://localhost:3000"
+    : `file://${path.join(__dirname, "../build/index.html")}`;
+  mainWindow.loadURL(appUrl);
 
-  mainWindow.loadURL(
-    isDev
-      ? "http://localhost:3000"
-      : `file://${path.join(__dirname, "../build/index.html")}`
-  );
-  // Open links in the system default browser when they are clicked in the Electron app
+  setupPushReceiver(mainWindow.webContents); // Set up push receiver for FCM
+
+  app.setAppUserModelId("MrxBet");
+
+  ipcMain.on("send-notification", (event, arg) => {
+    const notification = new Notification({
+      title: arg?.notification.title,
+      body: arg?.notification.body,
+      data: arg.data,
+      silent: false,
+      requireInteraction: true,
+      // timestamp: data.timestamp,
+      timeoutType: "default",
+      type: "info",
+      sound: "Default",
+      icon: appIcon,
+    });
+    log.log("send-notification");
+    log.info("notification");
+    log.log(arg);
+    log.info(arg);
+
+    notification.show();
+  });
+
+  // Handle external links in the Electron app
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
-    return { action: "deny" }; // Prevent the Electron window from opening a new tab
+    return { action: "deny" }; // Prevents creating new Electron windows/tabs
   });
-  //   mainWindow.setMenuBarVisibility(false);
+
+  return mainWindow;
 };
 
-function handlePushNotification(data) {
-  // Parse notification data and create a custom notification
-  const title = data.title;
-  const body = data.body;
-  const notification = new Notification({ title, body });
-  notification.show();
-}
-
-app.whenReady().then(() => {
-  log.info("app whenReady");
-  createWindow();
-  log.info("app LOADED");
-
-  // Initialize electron-push-receiver
-  pushReceiver.init({ projectNumber: "546843854180" });
-  // Handle FCM token retrieval
-  pushReceiver.on("token", (token) => {
-    // Send FCM token to OneSignal using REST API
-    fetch(`https://onesignal.com/api/v1/notifications`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(
-          `${oneSignalAppId}:${oneSignalRestApiKey}`
-        ).toString("base64")}`,
-      },
-      body: JSON.stringify({
-        app_id: oneSignalAppId,
-        headings: { en: "Notification Title" }, // Placeholder title
-        contents: { en: "Notification Body" }, // Placeholder body
-        data: { message: data }, // Pass notification data
-        include_player_ids: [token], // Include retrieved FCM token
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        log.info("OneSignal notification sent:");
-      })
-      .catch((error) => {
-        log.info("Error sending OneSignal notification:");
-      });
+// Function to set up IPC handlers for FCM token management
+const setupIPC = async () => {
+  const Store = (await import("electron-store")).default; // Dynamic import
+  const store = new Store(); // Initialize `electron-store`
+  ipcMain.on("storeFCMToken", (event, token) => {
+    store.set("fcm_token", token); // Store FCM token in Electron Store
   });
 
-  // Handle incoming push notifications
-  pushReceiver.on("notification", handlePushNotification);
+  ipcMain.on("getFCMToken", (event) => {
+    const token = store.get("fcm_token"); // Retrieve FCM token from Electron Store
+    event.sender.send("getFCMToken", token); // Send token back to the renderer process
+  });
+};
+
+// Function to set up the Electron app
+const setupApp = async () => {
+  await app.whenReady(); // Ensure Electron is ready
+  await createWindow(); // Create the main Electron window
+  setupIPC(); // Set up IPC handlers for communication
 
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow(); // Create a new window if none exist
+    }
   });
-});
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      app.quit(); // Quit the app except on macOS
+    }
+  });
+};
+
+// Call setupApp to start the Electron app
+setupApp();
