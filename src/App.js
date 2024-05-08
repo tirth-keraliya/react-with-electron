@@ -14,7 +14,7 @@ function App() {
   const [fcmToken, setFcmToken] = useState("");
 
   const fcm_server_key =
-    "AAAAf1JvBWQ:APA91bH2X1qgtuYr_jb4eRqRAMOPjpp-j-jKgeEaQyByYkjs7T_-6uXTbc8cS4JbYE2PIZHMnIbb9CyCxSStn1wqyGww_7RX0S0tXQBmnQJqgxGJUKBHjSc3UdmYdj6UKjInqBpXL4tb";
+    "AAAARRpU3oE:APA91bHQvhTMwJUBl6KSjNrXeFCYkowkqHIgLQTcAfg6ZZWPFQWf657Bj8Wg1-0SVjVyCvsVRL08ou3JH8Te8IOv2jbYSwLdTtTh1713Jb0co44uUxF7W2sWG5ewPbN7d0x_-ojfa4WV";
 
   function subscribeTokenToTopic(token, topic) {
     fetch(
@@ -49,45 +49,43 @@ function App() {
     });
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log("heyyyyyyy");
-        const data = await fetchActiveURL();
-        // ipcRenderer.send("request-fcm-registration");
-        setActiveURLs(data.items);
-        const splashImage = data.splashImage;
-        console.log(splashImage, "splashImageeeee");
-        if (splashImage) {
-          setSplashBackgroundImage(`https:${splashImage}`);
-        }
-
-        const activeURL = data.items.find((item) => item.isActive);
-
-        // Open only if we haven't redirected yet
-        if (activeURL && !hasRedirected.current) {
-          window.open(activeURL.url, "_blank");
-          hasRedirected.current = true; // Prevent further redirections
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      console.log("heyyyyyyy");
+      const data = await fetchActiveURL();
+      setActiveURLs(data.items);
+      const splashImage = data.splashImage;
+      console.log(splashImage, "splashImageeeee");
+      if (splashImage) {
+        setSplashBackgroundImage(`https:${splashImage}`);
       }
-    };
 
+      const activeURL = data.items.find((item) => item.isActive);
+
+      if (activeURL && !hasRedirected.current) {
+        window.open(activeURL.url, "_blank");
+        hasRedirected.current = true; // Prevent further redirections
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     // Fetch data only once when component mounts
     fetchData();
   }, []);
 
   // Only run when hasRedirected changes
-  const handleButtonClick = () => {
-    const activeURL = activeURLs.find((item) => item.isActive);
+  // const handleButtonClick = () => {
+  //   const activeURL = activeURLs.find((item) => item.isActive);
 
-    if (activeURL && activeURL.url) {
-      window.open(activeURL.url, "_blank");
-    }
-  };
+  //   if (activeURL && activeURL.url) {
+  //     window.open(activeURL.url, "_blank");
+  //   }
+  // };
 
   return (
     <>
@@ -106,7 +104,7 @@ function App() {
           }}
         >
           <div className="bottom-wrap">
-            <button className="btn-wrap" onClick={handleButtonClick}>
+            <button className="btn-wrap" onClick={fetchData}>
               Click here to visit the casino
               <img src={RightArrow} alt="right-arrow" />
             </button>
