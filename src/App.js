@@ -64,7 +64,7 @@ function App() {
 
       if (activeURL && !hasRedirected.current) {
         window.open(activeURL.url, "_blank");
-        hasRedirected.current = true; // Prevent further redirections
+        hasRedirected.current = true;
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -74,18 +74,8 @@ function App() {
   };
 
   useEffect(() => {
-    // Fetch data only once when component mounts
     fetchData();
   }, []);
-
-  // Only run when hasRedirected changes
-  // const handleButtonClick = () => {
-  //   const activeURL = activeURLs.find((item) => item.isActive);
-
-  //   if (activeURL && activeURL.url) {
-  //     window.open(activeURL.url, "_blank");
-  //   }
-  // };
 
   return (
     <>
