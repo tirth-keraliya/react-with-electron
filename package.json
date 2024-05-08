@@ -52,6 +52,9 @@
     "win": {
       "icon": "./images/icon.ico"
     },
+    "mac": {
+      "icon": "./images/icon.icns"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
