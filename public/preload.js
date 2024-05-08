@@ -30,3 +30,15 @@ ipcRenderer.on("PUSH_RECEIVER:::NOTIFICATION_RECEIVED", (_, notification) => {
 ipcRenderer.on("PUSH_RECEIVER:::TOKEN_UPDATED", (_, token) => {
   ipcRenderer.send("storeFCMToken", token);
 });
+const postMessage = (type, args) => {
+  window.postMessage(
+    JSON.stringify({
+      type: "sc-desktop-app",
+      args: { type: type, data: args },
+    }),
+    "*"
+  );
+};
+ipcRenderer.on("app-main-notification-clicked", (_, args) => {
+  postMessage("app-notification-clicked", JSON.parse(args));
+});

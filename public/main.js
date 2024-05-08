@@ -4,36 +4,35 @@ const {
   ipcMain,
   shell,
   Notification,
+  Tray,
+  Menu,
 } = require("electron");
 const path = require("path");
 const { setup: setupPushReceiver } = require("electron-push-receiver");
-const log = require("electron-log");
 
-let appIcon = path.join(__dirname, "images", "icon.ico");
+let mainWindow;
+let tray;
 
-var iconPath = path.join(__dirname, "images", "icon.ico");
-if (process.platform === "darwin") {
-  iconPath = path.join(__dirname, "images", "icon.icns");
-}
 const createWindow = async () => {
   const { default: isDev } = await import("electron-is-dev");
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     autoHideMenuBar: true,
     width: 800,
     height: 600,
-    icon: iconPath,
+    icon: path.join(__dirname, "images", "icon.ico"), // Change to your app's icon
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
       preload: path.join(__dirname, "./preload.js"),
     },
   });
+
   const appUrl = isDev
     ? "http://localhost:3000"
     : `file://${path.join(__dirname, "../build/index.html")}`;
   mainWindow.loadURL(appUrl);
 
-  setupPushReceiver(mainWindow.webContents); // Set up push receiver for FCM
+  setupPushReceiver(mainWindow.webContents);
 
   app.setAppUserModelId("MrxBet");
 
@@ -44,33 +43,60 @@ const createWindow = async () => {
       data: arg.data,
       silent: false,
       requireInteraction: true,
-      // timestamp: data.timestamp,
-      timeoutType: "default",
+      icon: path.join(__dirname, "images", "icon.ico"),
       type: "info",
       sound: "Default",
-      icon: appIcon,
     });
-    log.log("send-notification");
-    log.info("notification");
-    log.log(arg);
-    log.info(arg);
 
     notification.show();
+    notification.on("click", () => {
+      mainWindow.show();
+      mainWindow.webContents.send("notification-clicked", arg);
+    });
   });
 
-  // Handle external links in the Electron app
+  // Handle external links
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
-    return { action: "deny" }; // Prevents creating new Electron windows/tabs
+    return { action: "deny" };
+  });
+
+  mainWindow.on("close", (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault(); // Prevents closing; hides instead
+      mainWindow.hide();
+    }
   });
 
   return mainWindow;
 };
 
+const createTray = () => {
+  tray = new Tray(path.join(__dirname, "images", "icon.ico")); // Set your tray icon
+  const contextMenu = Menu.buildFromTemplate([
+    { label: "Open App", click: () => mainWindow.show() },
+    {
+      label: "Exit",
+      click: () => {
+        app.isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip("MrxBet");
+  tray.setContextMenu(contextMenu);
+
+  tray.on("click", () => {
+    mainWindow.show(); // Show the app window when tray icon is clicked
+  });
+};
+
 // Function to set up IPC handlers for FCM token management
 const setupIPC = async () => {
-  const Store = (await import("electron-store")).default;
+  const Store = (await import("electron-store")).default; // Dynamic import
   const store = new Store();
+
   ipcMain.on("storeFCMToken", (event, token) => {
     store.set("fcm_token", token);
   });
@@ -80,11 +106,10 @@ const setupIPC = async () => {
     event.sender.send("getFCMToken", token);
   });
 };
-
-// Function to set up the Electron app
 const setupApp = async () => {
   await app.whenReady();
   await createWindow();
+  createTray();
   setupIPC();
 
   app.on("activate", () => {
