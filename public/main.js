@@ -18,6 +18,7 @@ if (process.platform === "darwin") {
 const createWindow = async () => {
   const { default: isDev } = await import("electron-is-dev");
   const mainWindow = new BrowserWindow({
+    autoHideMenuBar: true,
     width: 800,
     height: 600,
     icon: iconPath,
