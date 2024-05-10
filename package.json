@@ -41,7 +41,7 @@
         "filter": ["icon.ico", "icon.icns"]
       }
     ],
-    "appId": "com.example.mrxbet",
+    "appId": "com.devservices.mrxbet",
     "productName": "mrxbet",
     "directories": {
       "output": "dist"
@@ -50,8 +50,11 @@
       "main": "build/main.js"
     },
     "win": {
-      "icon": "./images/icon.ico"
-    },
+      "icon": "./images/icon.ico",
+      "certificateFile": "./resources/WinStore/mrxbet.pfx",
+      "certificatePassword": "mrxbet123",
+      "publisherName": "mrxbet"
+        },
     "mac": {
       "icon": "./images/icon.icns"
     },
