@@ -49,9 +49,16 @@ const createWindow = async () => {
     });
 
     notification.show();
+    const launchOptions = "sc-open:" + JSON.stringify(JSON.stringify(arg));
+    const options = {
+      title: arg?.notification.title,
+      body: arg?.notification.body,
+      launch: launchOptions,
+    };
     notification.on("click", () => {
+      mainWindow.webContents.send("app-main-notification-clicked", arg);
+      mainWindow.webContents.send("activate", [null, options.launch]);
       mainWindow.show();
-      mainWindow.webContents.send("notification-clicked", arg);
     });
   });
 
