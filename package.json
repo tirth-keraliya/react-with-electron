@@ -5,12 +5,14 @@
   "homepage": "./",
   "publicPath": "./",
   "dependencies": {
+    "@electron/notarize": "^2.3.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/path-browserify": "^1.0.2",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
     "electron-fetch": "^1.9.1",
     "electron-is-dev": "^3.0.1",
     "electron-log": "^5.1.2",
@@ -30,6 +32,7 @@
     "path-browserify": "^1.0.1"
   },
   "build": {
+    "appId": "com.devservices.mrxbet",
     "files": [
       "build/**/*",
       "public/**/*"
@@ -38,10 +41,12 @@
       {
         "from": "images/",
         "to": "images/",
-        "filter": ["icon.ico", "icon.icns"]
+        "filter": [
+          "icon.ico",
+          "icon.icns"
+        ]
       }
     ],
-    "appId": "com.devservices.mrxbet",
     "productName": "mrxbet",
     "directories": {
       "output": "dist"
@@ -54,14 +59,24 @@
       "certificateFile": "./resources/WinStore/mrxbet.pfx",
       "certificatePassword": "mrxbet123",
       "publisherName": "mrxbet"
-        },
+    },
     "mac": {
-      "icon": "./images/icon.icns"
+      "category": "public.app-category.business",
+      "icon": "./images/icon.icns",
+      "hardenedRuntime": true,
+      "entitlements": "./installer/entitlements.mac.plist",
+      "entitlementsInherit": "./installer/child.plist",
+      "identity": "patel kuldeep (G6G549CHCQ)",
+      "provisioningProfile": "./resources/MacStore/mrxbet.provisionprofile",
+    },
+    "dmg": {
+      "sign": false
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "afterSign":"/public/notarize.js"
   },
   "main": "public/main.js",
   "scripts": {
@@ -70,7 +85,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron:serve": "concurrently -k \"cross-env BROWSER=none npm start\" \"npm run electron:start\"",
-    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/main.js",
+    "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/main.js && node public/notarize.js",
     "electron:start": "wait-on tcp:3000 && electron .",
     "dist": "electron-builder"
   },
