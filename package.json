@@ -1,6 +1,8 @@
 {
   "name": "mrxbet",
   "version": "0.1.0",
+  "description": "this is casino application",
+  "author": "mexbet",
   "private": true,
   "homepage": "./",
   "publicPath": "./",
@@ -35,7 +37,9 @@
     "appId": "com.devservices.mrxbet",
     "files": [
       "build/**/*",
-      "public/**/*"
+      "public/**/*",
+      "public/main.js",
+      "public/preload.js"
     ],
     "extraResources": [
       {
@@ -64,10 +68,12 @@
       "category": "public.app-category.business",
       "icon": "./images/icon.icns",
       "hardenedRuntime": true,
-      "entitlements": "./installer/entitlements.mac.plist",
-      "entitlementsInherit": "./installer/child.plist",
       "identity": "patel kuldeep (G6G549CHCQ)",
+      "entitlements": "./installer/entitlements.mac.plist",
+      "entitlementsInherit": "./installer/entitlements.mac.plist",
       "provisioningProfile": "./resources/MacStore/mrxbet.provisionprofile",
+      "asarUnpack": "**/*.node",
+      "gatekeeperAssess": false
     },
     "dmg": {
       "sign": false
@@ -76,7 +82,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
-    "afterSign":"/public/notarize.js"
+    "afterSign": "public/notarize.js"
   },
   "main": "public/main.js",
   "scripts": {
