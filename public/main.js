@@ -68,13 +68,6 @@ const createWindow = async () => {
     return { action: "deny" };
   });
 
-  mainWindow.on("close", (event) => {
-    if (!app.isQuitting) {
-      event.preventDefault(); // Prevents closing; hides instead
-      mainWindow.hide();
-    }
-  });
-
   return mainWindow;
 };
 
@@ -113,6 +106,7 @@ const setupIPC = async () => {
     event.sender.send("getFCMToken", token);
   });
 };
+
 const setupApp = async () => {
   await app.whenReady();
   await createWindow();
@@ -126,9 +120,7 @@ const setupApp = async () => {
   });
 
   app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      app.quit();
-    }
+    app.quit(); // Quit the app on all platforms
   });
 };
 
