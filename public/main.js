@@ -17,8 +17,8 @@ const createWindow = async () => {
   const { default: isDev } = await import("electron-is-dev");
   mainWindow = new BrowserWindow({
     autoHideMenuBar: true,
-    width: 800,
-    height: 600,
+    width: 344,
+    height: 788,
     icon: path.join(__dirname, "images", "icon.ico"), // Change to your app's icon
     webPreferences: {
       contextIsolation: true,
@@ -66,6 +66,13 @@ const createWindow = async () => {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
+  });
+
+  mainWindow.on("close", (event) => {
+    if (!app.isQuitting && process.platform !== "darwin") {
+      event.preventDefault(); // Prevents closing; hides instead
+      mainWindow.hide();
+    }
   });
 
   return mainWindow;
@@ -120,7 +127,9 @@ const setupApp = async () => {
   });
 
   app.on("window-all-closed", () => {
-    app.quit(); // Quit the app on all platforms
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
   });
 };
 
