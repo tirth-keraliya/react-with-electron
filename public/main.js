@@ -12,6 +12,7 @@ const { setup: setupPushReceiver } = require("electron-push-receiver");
 
 let mainWindow;
 let tray;
+let forceQuit = false;
 
 const createWindow = async () => {
   const { default: isDev } = await import("electron-is-dev");
@@ -68,12 +69,18 @@ const createWindow = async () => {
     return { action: "deny" };
   });
 
-  mainWindow.on("close", (event) => {
-    if (!app.isQuitting && process.platform !== "darwin") {
-      event.preventDefault(); // Prevents closing; hides instead
-      mainWindow.hide();
-    }
-  });
+  if (process.platform === "darwin") {
+    app.on("before-quit", function () {
+      forceQuit = true;
+    });
+
+    mainWindow.on("close", function (event) {
+      if (!forceQuit) {
+        event.preventDefault();
+        mainWindow.hide();
+      }
+    });
+  }
 
   return mainWindow;
 };
@@ -85,7 +92,7 @@ const createTray = () => {
     {
       label: "Exit",
       click: () => {
-        app.isQuitting = true;
+        forceQuit = true;
         app.quit();
       },
     },
@@ -123,7 +130,13 @@ const setupApp = async () => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
+    } else {
+      mainWindow.show();
     }
+  });
+
+  app.on("before-quit", () => {
+    forceQuit = true;
   });
 
   app.on("window-all-closed", () => {
