@@ -77,7 +77,8 @@
       "gatekeeperAssess": false
     },
     "dmg": {
-      "sign": false
+      "sign": false,
+      "title": "MrXbet ${version}"
     },
     "nsis": {
       "oneClick": false,
