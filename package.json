@@ -1,7 +1,7 @@
 {
   "name": "mrxbet",
   "version": "1.0.0",
-  "description": "this is casino application",
+  "description": "This is a casino application",
   "author": "mrxbet",
   "private": true,
   "homepage": "./",
@@ -51,9 +51,10 @@
         ]
       }
     ],
-    "productName": "mrxbet",
+    "productName": "MrXbet",
+    "artifactName": "${productName}-${version}.${ext}",
     "directories": {
-      "output": "dist"
+      "output": "dist/tmp"
     },
     "extraMetadata": {
       "main": "build/main.js"
